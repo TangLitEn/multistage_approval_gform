@@ -53,3 +53,19 @@ If both are ready, you are now ready to setup the CODE!
 1. Go to the Multistage Approval System > Extensions > Apps Script.
 2. Copy the code from the main.gs and paste it into the Apps Script field. (Tips: Ctrl + a to hightlight all, Ctrl + c to copy and then Ctrl + p to paste 😉)
 3. There is only one field that needs to modified (assuming you are following all the previous steps) which is the
+
+   ```const approval_form = FormApp.openByUrl("THE EDITABLE FORM LINK FOR THE APPROVAL RECEIPT"); // in edit format```
+
+4. You will need to replace ```"THE EDITABLE FORM LINK FOR THE APPROVAL RECEIPT"``` into the editable form of the Approval Receipt, how to get it? Go the Open up the Approval Receipt Google Form, copy the URL. And then paste it in! VOILA, you are all good to go!
+5. Try to run it once, press RUN to execute the apps script, if no ERROR pops up, most likely everything is setup correctly!
+
+# Testing of the system
+If everything is setup correctly, you can now try to submit the form that you had attached in. If you are following along, you can try to submit one entry on the **Request to be AWESOME**, the email will be process by the system and will be send to the name,gmail who are tags to the VP Operations positions and so on. 
+
+# Limitations
+Too good to be true? Here's the pitfall, this system is not meant to be large-scaled, cause the email that can be sent out by free Gmail account per day through API call is 100 recipients, so in normal usage, I won't put the school email for those Main Committees, unless it goes to the staff, then I will put in the Staf's school email. 
+
+With that being said, you can leave the school emails empty for certain positions BUT NOT the Gmail. Gmail is important as it represents the identity of different positions. 
+
+# Improvements
+1. Currently, if any of the workflow is stuck, means that the person never respond, then the people will need to go and remind the person, probably in the next update might come up with a function to do that.
