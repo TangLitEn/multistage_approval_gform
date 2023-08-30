@@ -31,13 +31,15 @@ You will also see other Forms connected, which are the **Approval Receipt** and 
 
 # Setting up of Approval Receipt
 1. Duplicate the Approval receipt into your own folder (same location as the **Multistage Approval System Spreadsheet**), it is suggested to not change the Request ID, Request Type, and Options as this field is heavily involved inside the system spreadsheet!
-2. Go to Responses > Link to sheets > Select existing spreadsheet > Multistage Approval System
-3. Rename the link sheet (Form Response) to "Approval Receipt" **CASE-SENSITIVE❗️**
+2. Set the form to collect VERIFIED EMAIL address. (Go to Form settings > Responses > Collect Email Address > Verified)
+3. Go to Responses > Link to sheets > Select existing spreadsheet > Multistage Approval System
+4. Rename the link sheet (Form Response) to "Approval Receipt" **CASE-SENSITIVE❗️**
 
 👍🏻 You might be wondering why there are Pending options. The Approved is easy to understand, the workflow is approved and then it will move to the next stage PIC while Rejected will cancel the whole workflow. Pending acts are sort of like HOLD, which means you can acknowledge the actions. Some use-case is when you already see the submissions, but you will need to check with some of your colleagues on certain items, you can put the process as Pending and put in your comment.
 
 # Nesting of New Form into the system
-1. Collect a VERIFIED EMAIL address. (Go to Form settings > Responses > Collect Email Address > Verified)
+0. Create a new form (preferably inside the same folder as the **Multistage Approval System**)
+1. Set the form to collect VERIFIED EMAIL address. (Go to Form settings > Responses > Collect Email Address > Verified)
 2. Set up the Google form as you want it to be😉 (Anything is okay, multiple sections, or attachments, all works!)
 3. At the end, the most important step, is to link the response to the Multistage Approval Spreadsheet. (Go to Form Responses > link to sheets > Select existing spreadsheet > Multistage Approval Spreadsheet)
 4. You can rename the link sheet (Form Response) to ANY NAME, and then define the workflow inside the **Workflow** tab.
@@ -48,3 +50,6 @@ Action checklist! Please make sure your spreadsheet is now well prepared with
 2. Workflow (All the Form(s) attached, EXCEPT **Approval Receipt** had defined the workflow? )
 
 If both are ready, you are now ready to setup the CODE!
+1. Go to the Multistage Approval System > Extensions > Apps Script.
+2. Copy the code from the main.gs and paste it into the Apps Script field. (Tips: Ctrl + a to hightlight all, Ctrl + c to copy and then Ctrl + p to paste 😉)
+3. There is only one field that needs to modified (assuming you are following all the previous steps) which is the
