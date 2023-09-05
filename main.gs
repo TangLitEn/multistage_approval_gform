@@ -56,6 +56,7 @@ function main(){
           var input_time_id = timeID(getCellValue(tabName,row,3))
           var receipt_email = getCellValue(tabName,row,2)
           var receipt_id = getCellValue(tabName,row,1)
+
           if(checkReceiptEmail(input_time_id,receipt_email)){
             console.log("Proper receipt")
             var ongoing_workflow_row = updateWorkflow(input_time_id,receipt_id) 
@@ -84,7 +85,7 @@ function workflow(ongoing_workflow_row,original_request_tab_name,original_reques
   var requester_email = getRequesterEmailOfInputID(timeID(input_id),input_type)
   
   if(stage == 0){
-    notify_email_list = checkStageType_emailList(row);
+    notify_email_list = checkStageType_emailList(row,"Init");
     current_status = "INITIALISE WORKFLOW"
   }
   else{
@@ -93,7 +94,7 @@ function workflow(ongoing_workflow_row,original_request_tab_name,original_reques
     var status = getCellValue(receipt_tab_name,last_receipt_row,5)
     
     if(status == "Approved"){
-      notify_email_list = checkStageType_emailList(row);
+      notify_email_list = checkStageType_emailList(row,status);
       if(notify_email_list.Gmail[0]!=""){
         current_status = "Approved by previous PIC, proceeding to next PIC"
       }
@@ -104,15 +105,16 @@ function workflow(ongoing_workflow_row,original_request_tab_name,original_reques
     }
     else if(status == "Pending"){
       current_status = "PENDING"
-      notify_email_list = checkStageType_emailList(row);
+      notify_email_list = checkStageType_emailList(row,status);
     }
     else{
-      current_status = status = "REJECTED"
-      notify_email_list = checkStageType_emailList(row);
+      current_status = "REJECTED"
+      notify_email_list = checkStageType_emailList(row,status);
     }
   }
 
   console.log(summary)
+  console.log(notify_email_list)
 
   var email_count = notify_email_list.Gmail.length
   if (checkQuota(email_count)){ // CHECK QUOTA COUNT 
@@ -125,7 +127,6 @@ function workflow(ongoing_workflow_row,original_request_tab_name,original_reques
     var cc_list = cc_list.concat([requester_email])
     var cc_list = cc_list.toString()
     var email_topic = input_type + " : " + input_id
-
     console.log(notify_email_list.Gmail[0])
     console.log(cc_list) 
     console.log(email_topic)
@@ -157,7 +158,11 @@ function timeID(time){
   return temp
 }
 
-function checkStageType_emailList(ongoing_workflow_row){
+function test(){
+  console.log(checkStageType_emailList(18))
+}
+
+function checkStageType_emailList(ongoing_workflow_row,status){
   var row = ongoing_workflow_row
   var type = getCellValue(ongoing_workflow_tab_name,row,1)
   var stage = getCellValue(ongoing_workflow_tab_name,row,2)
@@ -167,14 +172,16 @@ function checkStageType_emailList(ongoing_workflow_row){
   var workflowData = workflowSheet.getDataRange(); 
   var data = workflowData.getValues()
 
-  stage += 1 ; // offsetting
+  if(status == "Init" || status == "Approved"){
+    stage += 1 ; // offsetting
+  }
 
   var notify_positions = ""
 
   for (var i = 0 ; i < data.length ; i++){
     //console.log(data[i][0])
     if(data[i][0]==type){
-      notify_positions = getCellValue(workflow_tab_name,i+1,stage+1) // +1 to shift right cause or the numbering system and another +1 for offsetting
+      notify_positions = getCellValue(workflow_tab_name,i+1,stage+1) // +1 to shift right cause or the numbering system
       break
     }
   }
@@ -301,6 +308,7 @@ function checkReceiptEmail(input_time_id,email){
     if (timeID(data[i][2]) === input_time_id) {
       var type = data[i][0] // check the type 
       var stage = data[i][1] // check the stage
+      console.log(data[i][2],type,stage)
       if(getTypeStage_PICEmail(type,stage) == email){
         return true
       }
