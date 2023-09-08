@@ -321,12 +321,20 @@ function checkReceiptEmail(input_time_id,email){
 }
 
 function sendEmail(email, cc_email, email_subject, message) {
-    MailApp.sendEmail({
-      to: email,
-      cc: cc_email,
-      subject: email_subject,
-      htmlBody: message,
-    });
+
+    //MailApp.sendEmail({
+    //  to: email,
+    //  cc: cc_email,
+    //  subject: email_subject,
+    //  htmlBody: message,
+    //});
+
+    GmailApp.sendEmail(email,email_subject,email_subject,
+      {
+        cc: cc_email,
+        htmlBody: message
+      }
+    )
 }
 
 function generateHTMLBody(status,question_answer_array,requester_email,email_list,input_id,input_type){
