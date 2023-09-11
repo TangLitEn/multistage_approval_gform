@@ -84,3 +84,5 @@ You may test the remaining function remaining by running the ```testQuota()``` f
 2. If the correct PIC response to the same form twice, it will cause the system to crash, need to figure out a method to fix that💣.
 3. A hold button to put the process on hold, probably need to build a master dashboard to keep track of the whole system. 
 4. Kick back option, which will kick it back one stage
+5. Comment option, so the people can still chip in if something important to mentions, maybe use the similar algo as the pending in approval receipt
+6. CHANGE ALL OF THE TIME TO TIMEID, OMG, pain in the ass dealing the time
