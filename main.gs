@@ -1,6 +1,3 @@
-// THIS CODE RELIES HEAVILY ON DATE AND TIME TO FUNCTION PROPERLY
-var time_zone = 'en-US' // display as MM/DD/YYYY alternative is 'en-GB' which display as DD/MM/YYYY
-
 // Email must be collected for all of the form
 // ------ HARD-DEFINED-VARIABLE ------ // 
 var workflow_tab_name = "Workflow"
@@ -15,8 +12,9 @@ const approval_form_id = approval_form.getId();
 
 // -------------- AUTOMATION --------------------- //
 // holding back send email
-
 function main(){
+  convertAllTimeToID()
+
   var unfinishedInputRequest = findUnfinishedInput();
   for(tab = 0; tab < unfinishedInputRequest.length ; tab++){ // process sheet by sheet
     if(unfinishedInputRequest[tab].length >= 2){
@@ -53,9 +51,11 @@ function main(){
         }
         else{
           console.log("Non-blacklisted email")
-          var input_time_id = timeID(getCellValue(tabName,row,3))
+          var input_time_id = getCellValue(tabName,row,3)
           var receipt_email = getCellValue(tabName,row,2)
           var receipt_id = getCellValue(tabName,row,1)
+
+          console.log(input_time_id,receipt_email,receipt_id)
 
           if(checkReceiptEmail(input_time_id,receipt_email)){
             console.log("Proper receipt")
@@ -74,25 +74,32 @@ function main(){
 
 function workflow(ongoing_workflow_row,original_request_tab_name,original_request_tab_row){
   var row = ongoing_workflow_row
-  var summary = collateInputAndReceipt(timeID(getCellValue(ongoing_workflow_tab_name,row,3)))
+  var summary = collateInputAndReceipt(getCellValue(ongoing_workflow_tab_name,row,3))
   var notify_email_list
   var current_status
+
+  console.log(row,summary,notify_email_list,current_status)
 
   var input_id = getCellValue(ongoing_workflow_tab_name,row,3) // check input ID
   var input_type = getCellValue(ongoing_workflow_tab_name,row,1) // check stage
   var stage = getCellValue(ongoing_workflow_tab_name,row,2) // check stage
 
-  var requester_email = getRequesterEmailOfInputID(timeID(input_id),input_type)
+  var requester_email = getRequesterEmailOfInputID(input_id,input_type)
   
+  console.log(input_id,input_type,stage,requester_email)
+
   if(stage == 0){
     notify_email_list = checkStageType_emailList(row,"Init");
     current_status = "INITIALISE WORKFLOW"
   }
   else{
-    var last_receipt_time_id = timeID(getColumnAndIDOfLastRequest(row).ID)
+    console.log("Searching for: ",getColumnAndIDOfLastRequest(row).ID)
+    var last_receipt_time_id = getColumnAndIDOfLastRequest(row).ID
     var last_receipt_row = getRowOfReceiptID(last_receipt_time_id)
+    console.log(last_receipt_row)
     var status = getCellValue(receipt_tab_name,last_receipt_row,5)
-    
+    console.log(status)
+
     if(status == "Approved"){
       notify_email_list = checkStageType_emailList(row,status);
       if(notify_email_list.Gmail[0]!=""){
@@ -152,15 +159,68 @@ function workflow(ongoing_workflow_row,original_request_tab_name,original_reques
   }
 }
 
+
+function convertAllTimeToID(){
+  console.log("CHANGE THE TIME TO ID")
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var workflowSheet = ss.getSheetByName(workflow_tab_name);
+  var workflowData = workflowSheet.getRange("A2:A").getValues(); // Assuming data starts from the first row in column A
+  var tabName = [receipt_tab_name]
+
+  var temp = 0
+  while(workflowData[temp]!=""){
+    tabName.push(workflowData[temp][0])
+    temp++
+  }
+  
+  console.log(tabName)
+  for(var tab = 0; tab < tabName.length ; tab++){
+
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var workflowSheet = ss.getSheetByName(tabName[tab]);
+    var workflowData = workflowSheet.getRange("A2:A").getValues();
+    var time = []
+    var time_check = []
+    var updated_time = []
+    var temp = 0
+    
+    while(workflowData[temp]!=""){
+      time.push(workflowData[temp][0])
+      temp++
+    }
+    console.log(time)
+    
+    for(var time_ID = 0; time_ID < time.length ; time_ID++){
+      time_check.push(isValidDate(time[time_ID]))
+    }
+
+    for(var check = 0 ; check < time_check.length ; check++){
+      if(time_check[check]==true){
+        updated_time.push([timeID(time[check])])
+      }
+      else{
+        updated_time.push([time[check]])
+      }
+    }
+    console.log(updated_time)
+
+    workflowSheet.getRange(2,1,updated_time.length,1).setValues(updated_time)
+
+  }
+}
+
+function isValidDate(d) {
+  if ( Object.prototype.toString.call(d) !== "[object Date]" )
+    return false;
+  return !isNaN(d.getTime());
+}
+
 function timeID(time){
   var temp = new Date(time).valueOf()
-  temp = temp.toString().slice(0, -3)
+  temp = temp.toString()
   return temp
 }
 
-function test(){
-  console.log(checkStageType_emailList(18))
-}
 
 function checkStageType_emailList(ongoing_workflow_row,status){
   var row = ongoing_workflow_row
@@ -275,7 +335,7 @@ function isEmailBlacklisted(email) {
 function newWorkflow(type,input){
   var ss = SpreadsheetApp.getActiveSpreadsheet(); 
   var sheet = ss.getSheetByName(ongoing_workflow_tab_name);
-  var newRow = [type,0,input];
+  var newRow = [type,0,String(input)];
   sheet.appendRow(newRow)
 
   var sheetData = sheet.getDataRange();
@@ -305,7 +365,7 @@ function checkReceiptEmail(input_time_id,email){
   
   // Search for the input in existing data
   for (var i = 0; i < data.length; i++) {
-    if (timeID(data[i][2]) === input_time_id) {
+    if (data[i][2] === input_time_id) {
       var type = data[i][0] // check the type 
       var stage = data[i][1] // check the stage
       console.log(data[i][2],type,stage)
@@ -401,16 +461,16 @@ function collateInputAndReceipt(time_id) {
   var return_responses = []
   
   for (var i = 0; i < data.length; i++) {
-    if (timeID(data[i][2]) === time_id) {
+    if (data[i][2] === time_id) {
       id_list = data[i];
     }
   }
   
-  return_responses.push(collateQuestionAndAnswer(id_list[0],timeID(id_list[2])))
+  return_responses.push(collateQuestionAndAnswer(id_list[0],id_list[2]))
 
   if(id_list.length > 3){
     for (var i = 3 ; i < id_list.length ; i++){ // ignore first value as it is the type, second value as it is the stage
-      return_responses.push(collateQuestionAndAnswer(receipt_tab_name,timeID(id_list[i])))
+      return_responses.push(collateQuestionAndAnswer(receipt_tab_name,id_list[i]))
     }
   }
   
@@ -428,7 +488,7 @@ function collateQuestionAndAnswer(tabName, time_id) {
   
   var data = sheet.getDataRange().getValues();
   for (var i = 1; i < data.length; i++) { // Start from the 2nd row
-    if (timeID(data[i][0]) === time_id) {
+    if (data[i][0] === time_id) {
       var question = data[0]; // Question is in the 1st row
       var answer = data[i]; // Answer is in the respective row
       return { question: question, answer: answer };
@@ -506,7 +566,7 @@ function getRequesterEmailOfInputID(input_time_id,input_type){
 
   // Search for the input in existing data
   for (var i = 0; i < data.length; i++) {
-    if (timeID(data[i][0]) === input_time_id) {
+    if (data[i][0] === input_time_id) {
       return data[i][1] 
     }
   }
@@ -515,7 +575,7 @@ function getRequesterEmailOfInputID(input_time_id,input_type){
 
 function getRowOfReceiptID(time_id){
   var row = 2;
-  while(timeID(getCellValue(receipt_tab_name,row,1))!=time_id){row+=1}
+  while(getCellValue(receipt_tab_name,row,1)!=time_id){row+=1}
   return row
 }
 
@@ -558,10 +618,10 @@ function updateWorkflow(input_time_id, receipt) {
   
   // Search for the input in existing data
   for (var i = 0; i < data.length; i++) {
-    if (timeID(data[i][2]) === input_time_id) {
+    if (data[i][2] === input_time_id) {
       var newColumn = 3
       while(getCellValue(ongoing_workflow_tab_name,i+1,newColumn)!=""){ newColumn+=1}
-      sheet.getRange(i + 1, newColumn).setValue(receipt.toLocaleString(time_zone, {hour12:false}));
+      sheet.getRange(i + 1, newColumn).setValue(String(receipt));
       return i + 1
     }
   }
